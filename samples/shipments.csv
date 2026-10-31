@@ -1,0 +1,3 @@
+Tracking Number,Order ID,Carrier,Marketplace,Destination Country,Shipped Date,Expected Delivery Date,Notes
+DEMOUPLOAD001,DEMO-ORDER-A,YunExpress,Amazon US,US,2026-10-28,2026-11-10,Fictitious example
+DEMOUPLOAD002,DEMO-ORDER-B,Yanwen,Amazon CA,CA,2026-10-29,2026-11-12,Fictitious example

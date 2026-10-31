@@ -1,0 +1,176 @@
+generator client {
+  provider = "prisma-client-js"
+  engineType = "client"
+}
+datasource db {
+  provider = "postgresql"
+}
+model User {
+  id String @id @default(cuid())
+  email String @unique
+  name String
+  passwordHash String
+  createdAt DateTime @default(now())
+  sessions Session[]
+}
+model Session {
+  id String @id
+  userId String
+  user User @relation(fields:[userId], references:[id], onDelete:Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  @@index([expiresAt])
+}
+model Shipment {
+  id String @id @default(cuid())
+  number String @unique
+  orderId String @default("")
+  customerName String @default("")
+  carrier String @default("")
+  carrierCode Int?
+  marketplace String @default("Amazon US")
+  origin String @default("")
+  destination String @default("US")
+  orderDate DateTime?
+  shippedAt DateTime?
+  expectedAt DateTime?
+  notes String @default("")
+  status String @default("PendingRegistration")
+  subStatus String @default("")
+  latestDescription String @default("")
+  latestLocation String @default("")
+  lastEventAt DateTime?
+  lastSyncAt DateTime?
+  registeredAt DateTime?
+  externalId String?
+  registrationError String?
+  registrationTries Int @default(0)
+  demo Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  events TrackingEvent[]
+  exceptions DeliveryException[]
+  attempts RegistrationAttempt[]
+  @@index([orderId])
+  @@index([carrier])
+  @@index([status, updatedAt])
+  @@index([marketplace, destination, shippedAt])
+  @@index([lastSyncAt])
+}
+model TrackingEvent {
+  id String @id @default(cuid())
+  shipmentId String
+  shipment Shipment @relation(fields:[shipmentId],references:[id],onDelete:Cascade)
+  fingerprint String
+  occurredAt DateTime
+  description String
+  originalDescription String
+  location String @default("")
+  stage String @default("")
+  carrierSource String @default("")
+  createdAt DateTime @default(now())
+  @@unique([shipmentId, fingerprint])
+  @@index([shipmentId, occurredAt])
+}
+model Carrier {
+  code Int @id
+  name String
+  source String
+  verifiedAt DateTime
+}
+model ImportJob {
+  id String @id @default(cuid())
+  filename String
+  createdBy String
+  state String @default("preview")
+  rows Json
+  mapping Json
+  result Json?
+  createdAt DateTime @default(now())
+  completedAt DateTime?
+}
+model RegistrationAttempt {
+  id String @id @default(cuid())
+  shipmentId String
+  shipment Shipment @relation(fields:[shipmentId],references:[id],onDelete:Cascade)
+  outcome String
+  response Json?
+  createdAt DateTime @default(now())
+  @@index([createdAt, outcome])
+}
+model WebhookEvent {
+  id String @id
+  rawBody String @default("")
+  payload Json
+  state String @default("pending")
+  error String?
+  createdAt DateTime @default(now())
+  processedAt DateTime?
+  @@index([state, createdAt])
+}
+model DeliveryException {
+  id String @id @default(cuid())
+  shipmentId String
+  shipment Shipment @relation(fields:[shipmentId],references:[id],onDelete:Cascade)
+  type String
+  priority Int
+  title String
+  active Boolean @default(true)
+  acknowledgedAt DateTime?
+  resolvedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  followUps FollowUp[]
+  notifications Notification[]
+  @@index([active, priority])
+  @@index([shipmentId, type, active])
+}
+model FollowUp {
+  id String @id @default(cuid())
+  exceptionId String
+  exception DeliveryException @relation(fields:[exceptionId],references:[id],onDelete:Cascade)
+  actor String
+  action String
+  note String
+  createdAt DateTime @default(now())
+}
+model Notification {
+  id String @id @default(cuid())
+  dedupeKey String @unique
+  exceptionId String?
+  exception DeliveryException? @relation(fields:[exceptionId],references:[id],onDelete:SetNull)
+  title String
+  body String
+  priority Int
+  readAt DateTime?
+  emailState String @default("disabled")
+  emailError String?
+  emailAttempts Int @default(0)
+  createdAt DateTime @default(now())
+}
+model SystemSetting {
+  key String @id
+  value Json
+  updatedAt DateTime @updatedAt
+}
+model AuditLog {
+  id String @id @default(cuid())
+  actor String
+  action String
+  target String
+  detail Json?
+  createdAt DateTime @default(now())
+  @@index([createdAt])
+}
+model RateLimit {
+  key String @id
+  count Int @default(1)
+  resetAt DateTime
+}
+model SavedFilter {
+  id String @id @default(cuid())
+  userId String
+  name String
+  query Json
+  createdAt DateTime @default(now())
+}

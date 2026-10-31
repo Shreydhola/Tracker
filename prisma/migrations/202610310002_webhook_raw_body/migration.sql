@@ -1,0 +1,1 @@
+ALTER TABLE "WebhookEvent" ADD COLUMN "rawBody" TEXT NOT NULL DEFAULT '';
